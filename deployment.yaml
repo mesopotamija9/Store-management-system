@@ -1,0 +1,114 @@
+version: '3'
+
+services:
+  authenticationDatabase:
+    image: mysql
+    environment:
+      - MYSQL_ROOT_PASSWORD=root
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      timeout: 10s
+      retries: 10
+    volumes:
+      - authenticationDatabaseData:/var/lib/mysql
+    networks:
+      - authenticationNetwork
+  authenticationDatabaseMigration:
+    image: authenticationdatabasemigration
+    environment:
+      - DATABASE_URL=authenticationDatabase
+    depends_on:
+      authenticationDatabase:
+        condition: service_healthy
+    networks:
+      - authenticationNetwork
+  authenticationImg:
+    image: authenticationimg
+    environment:
+      - DATABASE_URL=authenticationDatabase
+    depends_on:
+      - authenticationDatabaseMigration
+    ports:
+    - 5000:5000
+    networks:
+    - authenticationNetwork
+  storeDatabase:
+    image: mysql
+    environment:
+      - MYSQL_ROOT_PASSWORD=root
+    healthcheck:
+      test: [ "CMD", "mysqladmin", "ping", "-h", "localhost" ]
+      timeout: 10s
+      retries: 10
+    volumes:
+      - storeDatabaseData:/var/lib/mysql
+    networks:
+      - storeNetwork
+  storeDatabaseMigration:
+    image: storedatabasemigration
+    environment:
+      - DATABASE_URL=storeDatabase
+      - REDIS_HOST=redis
+    depends_on:
+      storeDatabase:
+        condition: service_healthy
+    networks:
+      - storeNetwork
+  redis:
+    image: redis
+    networks:
+      - storeNetwork
+  warehouseImg:
+    image: warehouseimg
+    environment:
+      - DATABASE_URL=storeDatabase
+      - REDIS_HOST=redis
+    depends_on:
+      - storeDatabaseMigration
+      - redis
+    ports:
+      - 5001:5001
+    networks:
+      - storeNetwork
+  dameonImg:
+    image: dameonimg
+    environment:
+      - DATABASE_URL=storeDatabase
+      - REDIS_HOST=redis
+    depends_on:
+      - storeDatabaseMigration
+      - redis
+    ports:
+      - 5002:5002
+    networks:
+      - storeNetwork
+  customerImg:
+    image: customerimg
+    environment:
+      - DATABASE_URL=storeDatabase
+      - REDIS_HOST=redis
+    depends_on:
+      - storeDatabaseMigration
+    ports:
+      - 5003:5003
+    networks:
+      - storeNetwork
+  adminImg:
+    image: adminimg
+    environment:
+      - DATABASE_URL=storeDatabase
+      - REDIS_HOST=redis
+    depends_on:
+      - storeDatabaseMigration
+    ports:
+      - 5004:5004
+    networks:
+      - storeNetwork
+
+volumes:
+  authenticationDatabaseData:
+  storeDatabaseData:
+
+networks:
+  authenticationNetwork:
+  storeNetwork:
