@@ -1,2 +1,2 @@
-# Store-management-system
-Implemented a multi-user web service system for store inventory &amp; customer orders using Python, Flask, SQLAlchemy, and container orchestration. System includes user registration, product management, and order tracking with Redis web service.
+# Store management system
+This project aims to implement a multi-user web service system for managing a store's inventory and customer orders. The system uses Python and Flask, SQLAlchemy libraries, and container orchestration tools. The system has two parts, one for managing user accounts and one for managing the store. Each part consists of several components implemented using Docker Image templates. The system includes functionalities such as user registration, customer and warehouse worker roles, product management, and order tracking. The system also includes a Redis web service and a process for checking received products.
